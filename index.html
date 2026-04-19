@@ -5491,12 +5491,13 @@ function exportSviNaloziExcel(){
    ════════════════════════════════════════════════════ */
 
 /* Upis/ažuriranje servisa u mrežu sa GPS lokacijom */
-function upisiUMrezuServisa(){
+async function upisiUMrezuServisa(){
   var p = getPostavke();
   if(!p.naziv){ toast('Unesite naziv servisa u Postavkama prije upisa u mrežu.','err'); return; }
 
-  var token = localStorage.getItem('sb_token');
-  if(!token){ toast('Niste prijavljeni.','err'); return; }
+  // Dohvati validan token (automatski osvježi ako treba)
+  var token = await getValidToken();
+  if(!token){ toast('Niste prijavljeni. Prijavite se ponovo.','err'); return; }
 
   // Dohvati GPS lokaciju
   if(!navigator.geolocation){
@@ -5512,10 +5513,19 @@ function upisiUMrezuServisa(){
       upisiUMrezuSaGPS(p, token, lat, lng);
     },
     function(err){
-      // Korisnik odbio GPS ili greška — upiši bez koordinata
-      upisiUMrezuBezGPS(p, token);
+      // GPS greška - pokušaj ponovo sa svježim zahtjevom
+      toast('Tražim lokaciju ponovo...','info');
+      navigator.geolocation.getCurrentPosition(
+        function(pos2){
+          upisiUMrezuSaGPS(p, token, pos2.coords.latitude, pos2.coords.longitude);
+        },
+        function(err2){
+          toast('Nije moguće dohvatiti GPS lokaciju. Provjerite dozvole u browseru.','err');
+        },
+        { timeout: 15000, maximumAge: 0, enableHighAccuracy: true }
+      );
     },
-    { timeout: 10000, maximumAge: 300000 }
+    { timeout: 10000, maximumAge: 0, enableHighAccuracy: true }
   );
 }
 
@@ -5839,6 +5849,8 @@ async function prijaviSe(){
     });
     var d=await r.json();
     if(r.ok&&d.access_token){
+      // Spremi refresh token
+      if(d.refresh_token) localStorage.setItem('sb_refresh_token', d.refresh_token);
       // Zapamti me — sacuvaj email u localStorage ako je checkbox označen
       if(remember){
         localStorage.setItem('sb_remember_email', email.trim());
@@ -6178,6 +6190,47 @@ function odjaviSe(){
   var nn=document.getElementById('nav-naziv'); var bo=document.getElementById('btn-odjava');
   if(nn) nn.style.display='none'; if(bo) bo.style.display='none';
   loginTab('login');
+}
+
+/* Auto refresh tokena - poziva se svaki sat */
+async function refreshToken(){
+  var token = localStorage.getItem('sb_token');
+  if(!token) return null;
+  try {
+    var r = await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: {'apikey': SB_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({ refresh_token: localStorage.getItem('sb_refresh_token') || '' })
+    });
+    if(r.ok){
+      var d = await r.json();
+      if(d.access_token){
+        localStorage.setItem('sb_token', d.access_token);
+        if(d.refresh_token) localStorage.setItem('sb_refresh_token', d.refresh_token);
+        return d.access_token;
+      }
+    }
+  } catch(e){}
+  return token; // vrati stari ako refresh ne uspije
+}
+
+/* Dohvati validan token - osvježi ako treba */
+async function getValidToken(){
+  var token = localStorage.getItem('sb_token');
+  if(!token) return null;
+  try {
+    var parts = token.split('.');
+    if(parts[1]){
+      var data = JSON.parse(atob(parts[1]));
+      var now = Math.floor(Date.now()/1000);
+      // Ako ističe za manje od 10 minuta - osvježi
+      if(data.exp && data.exp - now < 600){
+        var fresh = await refreshToken();
+        return fresh;
+      }
+    }
+  } catch(e){}
+  return token;
 }
 
 async function authInit(){
