@@ -5543,47 +5543,30 @@ function upisiUMrezuBezGPS(p, token){
 
 async function _upisiUMrezu(p, token, lat, lng){
   try {
-    // Provjeri postoji li već zapis za ovog korisnika
-    var checkR = await fetch(SB_URL+'/rest/v1/mreza_servisa?select=id&limit=1', {
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer '+token,
-        'Content-Type': 'application/json'
-      }
-    });
-    var existing = await checkR.json();
-
     var _u = {}; try { _u = JSON.parse(localStorage.getItem('sb_user')||'{}'); } catch(e){}
+    var userId = _u.id || null;
+    if(!userId){ toast('Greška: korisnik nije prijavljen.','err'); return; }
+
     var podaci = {
-      user_id:      _u.id || null,
-      naziv:        p.naziv || '',
-      adresa:       p.adresa || '',
-      telefon:      p.telefon || '',
-      grad:         localStorage.getItem('grad_servisa') || '',
-      lat:          lat || null,
-      lng:          lng || null,
+      user_id:       userId,
+      naziv:         p.naziv || '',
+      adresa:        p.adresa || '',
+      telefon:       p.telefon || '',
+      grad:          localStorage.getItem('grad_servisa') || '',
+      lat:           lat || null,
+      lng:           lng || null,
       radno_vrijeme: localStorage.getItem('radno_vrijeme') || '',
-      aktivan:      true
+      aktivan:       true
     };
 
-    var method, url;
-    if(existing && existing.length > 0){
-      // Update
-      method = 'PATCH';
-      url = SB_URL+'/rest/v1/mreza_servisa?id=eq.'+existing[0].id;
-    } else {
-      // Insert
-      method = 'POST';
-      url = SB_URL+'/rest/v1/mreza_servisa';
-    }
-
-    var r = await fetch(url, {
-      method: method,
+    // Koristi UPSERT - automatski INSERT ili UPDATE po user_id
+    var r = await fetch(SB_URL+'/rest/v1/mreza_servisa', {
+      method: 'POST',
       headers: {
         'apikey': SB_KEY,
         'Authorization': 'Bearer '+token,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
       },
       body: JSON.stringify(podaci)
     });
@@ -5593,8 +5576,8 @@ async function _upisiUMrezu(p, token, lat, lng){
       toast('Servis uspješno upisan u mrežu! '+(lat?'📍 Lokacija sačuvana.':''), 'ok');
       renderSettings();
     } else {
-      var err = await r.text();
-      toast('Greška pri upisu: '+err, 'err');
+      var errTxt = await r.text();
+      toast('Greška pri upisu: '+errTxt, 'err');
     }
   } catch(e){
     toast('Greška veze: '+e.message, 'err');
