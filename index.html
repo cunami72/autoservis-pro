@@ -5760,27 +5760,40 @@ async function _upisiUMrezu(p, token, lat, lng){
       aktivan:       true
     };
 
-    // Provjeri postoji li zapis za ovog korisnika
-    var checkR = await fetch(SB_URL+'/rest/v1/mreza_servisa?user_id=eq.'+userId+'&select=id', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+token }
-    });
-    var existing = await checkR.json();
-
-    var method = (existing && existing.length > 0) ? 'PATCH' : 'POST';
-    var url = (existing && existing.length > 0)
-      ? SB_URL+'/rest/v1/mreza_servisa?user_id=eq.'+userId
-      : SB_URL+'/rest/v1/mreza_servisa';
-
-    var r = await fetch(url, {
-      method: method,
+    // Pokušaj PATCH prvo (ažuriranje postojećeg zapisa)
+    // Koristimo user token za SELECT da RLS dozvoli čitanje
+    var patchR = await fetch(SB_URL+'/rest/v1/mreza_servisa?user_id=eq.'+userId, {
+      method: 'PATCH',
       headers: {
         'apikey': SB_KEY,
         'Authorization': 'Bearer '+token,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'Prefer': 'return=representation,count=exact'
       },
       body: JSON.stringify(podaci)
     });
+
+    var r;
+    if(patchR.ok){
+      var patchBody = await patchR.json();
+      // Ako PATCH nije ažurirao nijedan red - radi INSERT
+      if(!patchBody || patchBody.length === 0){
+        r = await fetch(SB_URL+'/rest/v1/mreza_servisa', {
+          method: 'POST',
+          headers: {
+            'apikey': SB_KEY,
+            'Authorization': 'Bearer '+token,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(podaci)
+        });
+      } else {
+        r = patchR; // PATCH je uspio
+      }
+    } else {
+      r = patchR; // Vrati gresku
+    }
 
     if(r.ok || r.status === 201 || r.status === 204){
       localStorage.setItem('mreza_servis_upisan', '1');
