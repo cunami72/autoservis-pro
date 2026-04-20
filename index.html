@@ -5760,39 +5760,41 @@ async function _upisiUMrezu(p, token, lat, lng){
       aktivan:       true
     };
 
-    // Pokušaj PATCH prvo (ažuriranje postojećeg zapisa)
-    // Koristimo user token za SELECT da RLS dozvoli čitanje
+    // Pokušaj PATCH prvo
     var patchR = await fetch(SB_URL+'/rest/v1/mreza_servisa?user_id=eq.'+userId, {
       method: 'PATCH',
       headers: {
         'apikey': SB_KEY,
         'Authorization': 'Bearer '+token,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation,count=exact'
+        'Prefer': 'count=exact,return=minimal'
       },
       body: JSON.stringify(podaci)
     });
 
     var r;
-    if(patchR.ok){
-      var patchBody = await patchR.json();
-      // Ako PATCH nije ažurirao nijedan red - radi INSERT
-      if(!patchBody || patchBody.length === 0){
-        r = await fetch(SB_URL+'/rest/v1/mreza_servisa', {
-          method: 'POST',
-          headers: {
-            'apikey': SB_KEY,
-            'Authorization': 'Bearer '+token,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify(podaci)
-        });
-      } else {
-        r = patchR; // PATCH je uspio
-      }
+    // Provjeri Content-Range header koji govori koliko redova je ažurirano
+    var contentRange = patchR.headers.get('Content-Range') || '';
+    var countMatch = contentRange.match(/\/(\d+)$/);
+    var updatedCount = countMatch ? parseInt(countMatch[1]) : -1;
+
+    if(patchR.ok && updatedCount > 0){
+      // PATCH je ažurirao red - OK
+      r = patchR;
+    } else if(patchR.ok && updatedCount === 0){
+      // Nema zapisa - radi INSERT
+      r = await fetch(SB_URL+'/rest/v1/mreza_servisa', {
+        method: 'POST',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer '+token,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(podaci)
+      });
     } else {
-      r = patchR; // Vrati gresku
+      r = patchR;
     }
 
     if(r.ok || r.status === 201 || r.status === 204){
