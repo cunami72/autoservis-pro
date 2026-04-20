@@ -6158,6 +6158,11 @@ function getDeviceId(){
 
 async function provjeriUredjaj(token, user){
   var meta = user.user_metadata || {};
+  var email = (user.email || '').toLowerCase();
+
+  // Vlasnik nema ograničenja uređaja
+  if(email === 'slavkovidmar72@gmail.com') return true;
+
   var registrovaniUredjaj = meta.device_id || null;
   var mojUredjaj = getDeviceId();
 
