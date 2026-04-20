@@ -17,7 +17,7 @@ button { font-family: 'Inter', sans-serif; }
 input, select { font-family: 'Inter', sans-serif; }
 
 /* ─── SHELL ─── */
-.app { display: grid; grid-template-rows: 54px 1fr; height: 100vh; overflow: hidden; }
+.app { display: grid; grid-template-columns: auto 1fr; grid-template-rows: 54px 1fr; height: 100vh; overflow: hidden; }
 
 /* ─── HEADER ─── */
 header {
@@ -38,8 +38,144 @@ header {
 }
 .h-brand-txt { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: -.2px; }
 
+/* ─── SIDEBAR ─── */
+.sidebar {
+  grid-row: 1 / 3;
+  width: 240px;
+  background: #1a1d2e;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease-in-out;
+  z-index: 200;
+  position: relative;
+}
+.sidebar.collapsed { width: 70px; }
+.sidebar.collapsed:hover { width: 240px; }
+.sidebar.collapsed:hover .sn-label { opacity: 1; width: auto; overflow: visible; }
+.sidebar.collapsed:hover .sidebar-brand-txt { opacity: 1; width: auto; overflow: visible; }
+.sidebar.collapsed:hover .sn-item { padding: 11px 18px; justify-content: flex-start; border-left: 4px solid transparent; border-right: none !important; border-right-color: transparent !important; }
+.sidebar.collapsed:hover .sn-item.on { border-left: 4px solid #3a6bd0 !important; border-right: none !important; }
+.sidebar.collapsed:hover .sn-tooltip { display: none !important; }
+
+.sidebar-header {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+  gap: 10px;
+}
+.sidebar-brand-ico {
+  width: 32px; height: 32px;
+  background: #3a6bd0;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.sidebar-brand-txt {
+  color: #fff; font-size: 14px; font-weight: 800;
+  white-space: nowrap; overflow: hidden;
+  transition: opacity 0.2s, width 0.3s;
+}
+.sidebar.collapsed .sidebar-brand-txt { opacity: 0; width: 0; }
+
+.sidebar-toggle {
+  margin-left: auto;
+  background: none; border: none;
+  color: rgba(255,255,255,.5);
+  cursor: pointer; font-size: 16px;
+  padding: 4px; border-radius: 6px;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.sidebar-toggle:hover { color: #fff; background: rgba(255,255,255,.08); }
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.3); }
+
+.sn-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  color: rgba(255,255,255,.6);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all .15s;
+  border-left: 4px solid transparent;
+  white-space: nowrap;
+}
+.sn-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.sn-item.on {
+  background: rgba(58,107,208,.18);
+  color: #fff;
+  font-weight: 700;
+  border-left: 4px solid #3a6bd0;
+}
+.sn-ico { font-size: 17px; flex-shrink: 0; width: 24px; text-align: center; }
+.sn-label { overflow: hidden; transition: opacity 0.2s; }
+.sidebar.collapsed .sn-label { opacity: 0; width: 0; overflow: hidden; }
+.sidebar.collapsed .sn-item { padding: 11px 0; justify-content: center; border-left: 4px solid transparent; border-right: 4px solid transparent; }
+.sidebar.collapsed .sn-item.on { border-left: 4px solid transparent; border-right: 4px solid #3a6bd0; }
+
+.sn-tooltip {
+  position: absolute;
+  left: 78px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #2d3561;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  display: block;
+}
+.sidebar.collapsed .sn-item:hover .sn-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sn-spacer { flex: 1; min-height: 8px; }
+
+/* Header slim (bez navigacije) */
+header {
+  grid-column: 2;
+}
+
+/* Main bez headera row */
+.main {
+  grid-column: 2;
+}
+
 /* Nav unutar headera — ovo su tab switcher za desni panel */
-.h-nav { display: flex; align-items: center; gap: 2px; padding: 0 14px; flex: 1; }
+.h-nav { display: none; }
 .hn {
   display: flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 7px; border: none; background: none;
@@ -588,7 +724,13 @@ kbd { background: #fff; border: 1px solid #dde1ec; border-radius: 5px; padding: 
   }
 
   /* MAIN — jedan panel vidljiv */
-  .app { grid-template-rows: 52px 1fr calc(56px + env(safe-area-inset-bottom)); height: 100svh; }
+  .app { grid-template-columns: 1fr; grid-template-rows: 52px 1fr calc(56px + env(safe-area-inset-bottom)); height: 100svh; }
+  .sidebar { display: none; }
+  header { grid-column: 1; }
+  .main { grid-column: 1; }
+  #mob-hamburger { display: block !important; }
+  #mob-brand-ico { display: flex !important; }
+  #mob-brand-txt { display: block !important; }
   .main {
     grid-template-columns: 1fr;
     height: calc(100svh - 52px - calc(56px + env(safe-area-inset-bottom)));
@@ -710,6 +852,24 @@ kbd { background: #fff; border: 1px solid #dde1ec; border-radius: 5px; padding: 
   .mob-back-btn { display: none !important; }
   .h-mob-new { display: none !important; }
 }
+.mob-sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 9000;
+}
+.mob-sidebar-overlay.open { display: block; }
+.mob-sidebar-panel {
+  position: fixed; top: 0; left: -260px;
+  width: 240px; height: 100%;
+  background: #1a1d2e; z-index: 9001;
+  transition: left .25s ease;
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.mob-sidebar-panel.open { left: 0; }
+.mob-sb-header {
+  height: 54px; display: flex; align-items: center;
+  padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,.08); gap: 10px;
+}
+.mob-sb-close { margin-left: auto; background: none; border: none; color: rgba(255,255,255,.6); font-size: 20px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -784,40 +944,80 @@ kbd { background: #fff; border: 1px solid #dde1ec; border-radius: 5px; padding: 
 
 <div class="app">
 
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar" id="app-sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-brand-ico">🔧</div>
+    <div class="sidebar-brand-txt">AUTO SERVIS</div>
+    <button class="sidebar-toggle" id="sidebar-toggle" title="Ctrl+B">◀</button>
+  </div>
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <button class="sn-item on" onclick="showView('detalji')" id="sn-detalji">
+      <span class="sn-ico">📋</span>
+      <span class="sn-label">Radni nalog</span>
+      <span class="sn-tooltip">Radni nalog</span>
+    </button>
+    <button class="sn-item" onclick="showView('kasa')" id="sn-kasa">
+      <span class="sn-ico">💳</span>
+      <span class="sn-label">Kasa</span>
+      <span class="sn-tooltip">Kasa</span>
+    </button>
+    <button class="sn-item" onclick="showView('statistika')" id="sn-statistika">
+      <span class="sn-ico">📊</span>
+      <span class="sn-label">Statistika</span>
+      <span class="sn-tooltip">Statistika</span>
+    </button>
+    <button class="sn-item" onclick="showView('termini')" id="sn-termini">
+      <span class="sn-ico">📅</span>
+      <span class="sn-label">Termini</span>
+      <span class="sn-tooltip">Termini</span>
+    </button>
+    <button class="sn-item" onclick="showView('izvjestaj')" id="sn-izvjestaj">
+      <span class="sn-ico">📑</span>
+      <span class="sn-label">Dnevni izvještaj</span>
+      <span class="sn-tooltip">Dnevni izvještaj</span>
+    </button>
+    <button class="sn-item" onclick="showView('crm')" id="sn-crm">
+      <span class="sn-ico">🚗</span>
+      <span class="sn-label">Historija vozila</span>
+      <span class="sn-tooltip">Historija vozila</span>
+    </button>
+    <button class="sn-item" onclick="showView('katalog')" id="sn-katalog">
+      <span class="sn-ico">📦</span>
+      <span class="sn-label">Katalog</span>
+      <span class="sn-tooltip">Katalog</span>
+    </button>
+    <button class="sn-item" onclick="showView('marketing')" id="sn-marketing">
+      <span class="sn-ico">🌡️</span>
+      <span class="sn-label">Marketing</span>
+      <span class="sn-tooltip">Marketing</span>
+    </button>
+    <div class="sn-spacer"></div>
+    <button class="sn-item" onclick="showView('settings')" id="sn-settings">
+      <span class="sn-ico">⚙️</span>
+      <span class="sn-label">Postavke</span>
+      <span class="sn-tooltip">Postavke</span>
+    </button>
+  </nav>
+</aside>
+
 <!-- ═══ HEADER ═══ -->
 <header>
-  <div class="h-brand">
-    <div class="h-brand-ico">🔧</div>
-    <div class="h-brand-txt">AUTO SERVIS</div>
+  <div class="h-brand" id="mob-header-brand">
+    <button id="mob-hamburger" onclick="mobSidebarOpen()" style="display:none;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px 8px">☰</button>
+    <div class="h-brand-ico" style="display:none" id="mob-brand-ico">🔧</div>
+    <div class="h-brand-txt" id="mob-brand-txt" style="display:none">AUTO SERVIS</div>
   </div>
   <div class="h-nav">
-    <button class="hn" onclick="showView('settings')" id="hn-settings">
-      <span class="hn-ico">⚙️</span> Postavke
-    </button>
-    <button class="hn on" onclick="showView('detalji')" id="hn-detalji">
-      <span class="hn-ico">📋</span> Radni nalog
-    </button>
-    <button class="hn" onclick="showView('kasa')" id="hn-kasa">
-      <span class="hn-ico">💳</span> Kasa
-    </button>
-    <button class="hn" onclick="showView('statistika')" id="hn-statistika">
-      <span class="hn-ico">📊</span> Statistika
-    </button>
-    <button class="hn" onclick="showView('termini')" id="hn-termini">
-      <span class="hn-ico">📅</span> Termini
-    </button>
-    <button class="hn" onclick="showView('izvjestaj')" id="hn-izvjestaj">
-      <span class="hn-ico">📑</span> Dnevni izvještaj
-    </button>
-    <button class="hn" onclick="showView('crm')" id="hn-crm">
-      <span class="hn-ico">🚗</span> Historija vozila
-    </button>
-    <button class="hn" onclick="showView('katalog')" id="hn-katalog">
-      <span class="hn-ico">📦</span> Katalog
-    </button>
-    <button class="hn" onclick="showView('marketing')" id="hn-marketing">
-      <span class="hn-ico">🌡️</span> Marketing
-    </button>
+    <button class="hn on" onclick="showView('detalji')" id="hn-detalji"><span class="hn-ico">📋</span> Radni nalog</button>
+    <button class="hn" onclick="showView('kasa')" id="hn-kasa"><span class="hn-ico">💳</span> Kasa</button>
+    <button class="hn" onclick="showView('statistika')" id="hn-statistika"><span class="hn-ico">📊</span> Statistika</button>
+    <button class="hn" onclick="showView('termini')" id="hn-termini"><span class="hn-ico">📅</span> Termini</button>
+    <button class="hn" onclick="showView('izvjestaj')" id="hn-izvjestaj"><span class="hn-ico">📑</span> Izvještaj</button>
+    <button class="hn" onclick="showView('crm')" id="hn-crm"><span class="hn-ico">🚗</span> Historija</button>
+    <button class="hn" onclick="showView('katalog')" id="hn-katalog"><span class="hn-ico">📦</span> Katalog</button>
+    <button class="hn" onclick="showView('marketing')" id="hn-marketing"><span class="hn-ico">🌡️</span> Marketing</button>
+    <button class="hn" onclick="showView('settings')" id="hn-settings"><span class="hn-ico">⚙️</span> Postavke</button>
   </div>
   <div class="h-right">
     <button class="mob-back-btn" id="mob-back-btn" onclick="mobGoBack()" style="display:none">← Lista</button>
@@ -6807,6 +7007,72 @@ function mobNav(view){
 
 window.addEventListener('resize', function(){ checkMobile(); });
 
+/* ── Sidebar JS ── */
+function sidebarInit(){
+  var collapsed = localStorage.getItem('sidebar_collapsed') === '1';
+  var sb = document.getElementById('app-sidebar');
+  var btn = document.getElementById('sidebar-toggle');
+  if(!sb) return;
+  if(collapsed){ sb.classList.add('collapsed'); if(btn) btn.textContent = '☰'; }
+  else { sb.classList.remove('collapsed'); if(btn) btn.textContent = '◀'; }
+  // Sinhronizuj aktivnu stavku sa trenutnim viewom
+  var currentView = localStorage.getItem('current_view') || 'detalji';
+  document.querySelectorAll('.sn-item').forEach(function(b){ b.classList.remove('on'); });
+  var sn = document.getElementById('sn-'+currentView);
+  if(sn) sn.classList.add('on');
+  document.querySelectorAll('#mob-sb-panel .sn-item').forEach(function(b){ b.classList.remove('on'); });
+  var msn = document.getElementById('msn-'+currentView);
+  if(msn) msn.classList.add('on');
+}
+
+function sidebarToggle(){
+  var sb = document.getElementById('app-sidebar');
+  var btn = document.getElementById('sidebar-toggle');
+  if(!sb) return;
+  var isCollapsed = sb.classList.toggle('collapsed');
+  localStorage.setItem('sidebar_collapsed', isCollapsed ? '1' : '0');
+  if(btn) btn.textContent = isCollapsed ? '☰' : '◀';
+  // Spremi stanje
+  setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 310);
+}
+
+document.addEventListener('keydown', function(e){
+  if((e.ctrlKey || e.metaKey) && e.key === 'b'){
+    e.preventDefault();
+    sidebarToggle();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('sidebar-toggle');
+  if(btn) btn.addEventListener('click', sidebarToggle);
+  sidebarInit();
+});
+
+function mobSidebarOpen(){
+  document.getElementById('mob-sb-overlay').classList.add('open');
+  document.getElementById('mob-sb-panel').classList.add('open');
+}
+function mobSidebarClose(){
+  document.getElementById('mob-sb-overlay').classList.remove('open');
+  document.getElementById('mob-sb-panel').classList.remove('open');
+}
+
+/* Override showView da sinhronizuje sidebar */
+var _origShowView2 = showView;
+showView = function(v){
+  _origShowView2(v);
+  localStorage.setItem('current_view', v);
+  // Desktop sidebar
+  document.querySelectorAll('#app-sidebar .sn-item').forEach(function(b){ b.classList.remove('on'); });
+  var sn = document.getElementById('sn-'+v);
+  if(sn) sn.classList.add('on');
+  // Mob sidebar
+  document.querySelectorAll('#mob-sb-panel .sn-item').forEach(function(b){ b.classList.remove('on'); });
+  var msn = document.getElementById('msn-'+v);
+  if(msn) msn.classList.add('on');
+};
+
 // Override selectOrder za mobilni
 var _origSelectOrder = selectOrder;
 selectOrder = function(id){
@@ -6819,5 +7085,27 @@ selectOrder = function(id){
 };
 
 </script>
+
+<!-- MOB SIDEBAR OVERLAY -->
+<div class="mob-sidebar-overlay" id="mob-sb-overlay" onclick="mobSidebarClose()"></div>
+<div class="mob-sidebar-panel" id="mob-sb-panel">
+  <div class="mob-sb-header">
+    <div style="width:32px;height:32px;background:#3a6bd0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🔧</div>
+    <div style="color:#fff;font-size:14px;font-weight:800">AUTO SERVIS</div>
+    <button class="mob-sb-close" onclick="mobSidebarClose()">✕</button>
+  </div>
+  <nav style="flex:1;padding:8px 0;display:flex;flex-direction:column">
+    <button class="sn-item on" onclick="showView('detalji');mobSidebarClose()" id="msn-detalji"><span class="sn-ico">📋</span><span class="sn-label">Radni nalog</span></button>
+    <button class="sn-item" onclick="showView('kasa');mobSidebarClose()" id="msn-kasa"><span class="sn-ico">💳</span><span class="sn-label">Kasa</span></button>
+    <button class="sn-item" onclick="showView('statistika');mobSidebarClose()" id="msn-statistika"><span class="sn-ico">📊</span><span class="sn-label">Statistika</span></button>
+    <button class="sn-item" onclick="showView('termini');mobSidebarClose()" id="msn-termini"><span class="sn-ico">📅</span><span class="sn-label">Termini</span></button>
+    <button class="sn-item" onclick="showView('izvjestaj');mobSidebarClose()" id="msn-izvjestaj"><span class="sn-ico">📑</span><span class="sn-label">Dnevni izvještaj</span></button>
+    <button class="sn-item" onclick="showView('crm');mobSidebarClose()" id="msn-crm"><span class="sn-ico">🚗</span><span class="sn-label">Historija vozila</span></button>
+    <button class="sn-item" onclick="showView('katalog');mobSidebarClose()" id="msn-katalog"><span class="sn-ico">📦</span><span class="sn-label">Katalog</span></button>
+    <button class="sn-item" onclick="showView('marketing');mobSidebarClose()" id="msn-marketing"><span class="sn-ico">🌡️</span><span class="sn-label">Marketing</span></button>
+    <div style="flex:1"></div>
+    <button class="sn-item" onclick="showView('settings');mobSidebarClose()" id="msn-settings"><span class="sn-ico">⚙️</span><span class="sn-label">Postavke</span></button>
+  </nav>
+</div>
 </body>
 </html>
