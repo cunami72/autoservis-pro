@@ -6417,6 +6417,12 @@ async function getValidToken(){
 }
 
 async function authInit(){
+  // Automatski ažuriraj stari portal URL
+  var oldPortal = localStorage.getItem('portal_url') || '';
+  if(oldPortal.indexOf('sensational-boba') >= 0 || oldPortal.indexOf('netlify.app') >= 0){
+    localStorage.setItem('portal_url', 'https://cunami72.github.io/autoservis-portal');
+  }
+
   var token=localStorage.getItem('sb_token');
   var userStr=localStorage.getItem('sb_user');
   // Popuni zapamćeni email
@@ -6500,7 +6506,7 @@ function prikaziQRModal(o,vid,naziv,servisi){
   if(!portalBase){
     portalBase = prompt(
       'Unesite URL QR portala:\n\nKopirajte link iz Postavke → QR Portal URL i zalijepite ovdje.',
-      'https://sensational-boba-c6c9c6.netlify.app'
+      'https://cunami72.github.io/autoservis-portal'
     );
     if(portalBase) localStorage.setItem('portal_url', portalBase.trim());
     else return;
