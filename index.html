@@ -5760,14 +5760,24 @@ async function _upisiUMrezu(p, token, lat, lng){
       aktivan:       true
     };
 
-    // Koristi UPSERT - automatski INSERT ili UPDATE po user_id
-    var r = await fetch(SB_URL+'/rest/v1/mreza_servisa', {
-      method: 'POST',
+    // Provjeri postoji li zapis za ovog korisnika
+    var checkR = await fetch(SB_URL+'/rest/v1/mreza_servisa?user_id=eq.'+userId+'&select=id', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+token }
+    });
+    var existing = await checkR.json();
+
+    var method = (existing && existing.length > 0) ? 'PATCH' : 'POST';
+    var url = (existing && existing.length > 0)
+      ? SB_URL+'/rest/v1/mreza_servisa?user_id=eq.'+userId
+      : SB_URL+'/rest/v1/mreza_servisa';
+
+    var r = await fetch(url, {
+      method: method,
       headers: {
         'apikey': SB_KEY,
         'Authorization': 'Bearer '+token,
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
+        'Prefer': 'return=minimal'
       },
       body: JSON.stringify(podaci)
     });
